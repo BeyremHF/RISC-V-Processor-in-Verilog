@@ -19,8 +19,14 @@ module testbench;
     
     // Clock generation (50MHz = 20ns period)
     initial begin
+
+        // VCD dump for waveform viewing
+        $dumpfile("dump.vcd");
+        $dumpvars(0, testbench);
+
         clk = 0;
         forever #10 clk = ~clk;
+
     end
     
     // Helper task to check register value

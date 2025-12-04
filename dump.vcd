@@ -1,5 +1,5 @@
 $date
-	Fri Dec  5 00:11:18 2025
+	Fri Dec  5 00:12:14 2025
 $end
 $version
 	Icarus Verilog
@@ -146,6 +146,38 @@ $scope task check_register $end
 $var reg 32 z expected [31:0] $end
 $var reg 5 { reg_num [4:0] $end
 $var reg 1601 | test_name [1600:0] $end
+$upscope $end
+$upscope $end
+$scope module testbench $end
+$scope module dut $end
+$scope module alu_inst $end
+$upscope $end
+$scope module alu_src_b_mux $end
+$upscope $end
+$scope module ctrl $end
+$upscope $end
+$scope module dmem $end
+$upscope $end
+$scope module imem $end
+$upscope $end
+$scope module pc_inst $end
+$upscope $end
+$scope module pc_plus4_adder $end
+$upscope $end
+$scope module pc_src_mux $end
+$upscope $end
+$scope module pc_target_adder $end
+$upscope $end
+$scope module reg_file $end
+$upscope $end
+$scope module result_mux $end
+$upscope $end
+$scope module sign_ext $end
+$upscope $end
+$upscope $end
+$scope task check_memory $end
+$upscope $end
+$scope task check_register $end
 $upscope $end
 $upscope $end
 $enddefinitions $end
