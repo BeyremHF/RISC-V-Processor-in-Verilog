@@ -3,7 +3,7 @@ Hardware implementations of RISC-V processors in Verilog for HDL Course.
 
 ## Branches
 - **RV-SC**: Single-cycle RISC-V processor
-- **RV-MC**: Multi-cycle RISC-V processor (coming soon)
+- **RV-MC**: Multi-cycle RISC-V processor
 - **RV-PL**: Pipelined RISC-V processor (coming soon)
 
 ## Current Implementation (RV-SC)
