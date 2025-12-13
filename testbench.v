@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 
-module testbench_mc;
+module testbench;
 
     // Signals
     reg clk;
@@ -11,16 +11,22 @@ module testbench_mc;
     integer failed_tests;
     integer total_tests;
     
-    // Instantiate the multi-cycle processor
-    rv_mc dut (
+    // Instantiate the processor
+    riscv_processor dut (
         .clk(clk),
         .rst(rst)
     );
     
     // Clock generation (50MHz = 20ns period)
     initial begin
+
+        // VCD dump for waveform viewing
+        $dumpfile("dump.vcd");
+        $dumpvars(0, testbench);
+
         clk = 0;
         forever #10 clk = ~clk;
+
     end
     
     // Helper task to check register value
@@ -50,15 +56,14 @@ module testbench_mc;
         input [200*8:0] test_name;
         begin
             total_tests = total_tests + 1;
-            // Multi-cycle uses unified memory (MEM), not separate dmem
-            if (dut.MEM.RAM[addr[31:2]] === expected) begin
+            if (dut.dmem.mem[addr[31:2]] === expected) begin
                 $display("✓ PASS: %0s", test_name);
-                $display("  mem[%0d] = 0x%08h", addr, dut.MEM.RAM[addr[31:2]]);
+                $display("  mem[%0d] = 0x%08h", addr, dut.dmem.mem[addr[31:2]]);
                 passed_tests = passed_tests + 1;
             end else begin
                 $display("✗ FAIL: %0s", test_name);
                 $display("  Expected: mem[%0d] = 0x%08h", addr, expected);
-                $display("  Got:      mem[%0d] = 0x%08h", addr, dut.MEM.RAM[addr[31:2]]);
+                $display("  Got:      mem[%0d] = 0x%08h", addr, dut.dmem.mem[addr[31:2]]);
                 failed_tests = failed_tests + 1;
             end
         end
@@ -72,30 +77,29 @@ module testbench_mc;
         total_tests = 0;
         
         // Setup waveform dumping
-        $dumpfile("riscv_processor_mc.vcd");
-        $dumpvars(0, testbench_mc);
+        $dumpfile("riscv_processor.vcd");
+        $dumpvars(0, testbench);
         
-        // Load program into unified memory
-        $readmemh("program.hex", dut.MEM.RAM);
+        // Load program
+        $readmemh("program.hex", dut.imem.mem);
         
-        $display("\n================================================================================");
-        $display("RISC-V MULTI-CYCLE PROCESSOR COMPREHENSIVE TEST SUITE");
-        $display("================================================================================\n");
+        $display("\n" + "="*80);
+        $display("RISC-V PROCESSOR COMPREHENSIVE TEST SUITE");
+        $display("="*80 + "\n");
         
-        // Reset sequence
+        // Reset sequence - properly timed
         rst = 1;
-        #25;
+        #15;
         rst = 0;
-        #25;
+        #15;
         
         // Run for enough cycles to complete all instructions
-        // Multi-cycle takes more cycles: ~40 instructions * 4-5 cycles each = ~180 cycles
-        // Plus margin for complexity = 300 cycles = 6000ns
-        #6000;
+        // 40 instructions + some margin for branches/jumps
+        #900;
         
-        $display("\n================================================================================");
+        $display("\n" + "="*80);
         $display("TEST RESULTS");
-        $display("================================================================================\n");
+        $display("="*80 + "\n");
         
         // GROUP 1: I-TYPE ARITHMETIC (ADDI)
         $display("--- GROUP 1: I-TYPE ARITHMETIC (ADDI) ---");
@@ -188,26 +192,26 @@ module testbench_mc;
         $display("");
         
         // FINAL SUMMARY
-        $display("================================================================================");
+        $display("="*80);
         $display("FINAL TEST SUMMARY");
-        $display("================================================================================");
+        $display("="*80);
         $display("Total Tests:  %0d", total_tests);
         $display("Passed:       %0d", passed_tests);
         $display("Failed:       %0d", failed_tests);
         $display("Success Rate: %0d%%", (passed_tests * 100) / total_tests);
-        $display("================================================================================");
+        $display("="*80);
         
         if (failed_tests == 0) begin
-            $display("\n✓✓✓ PERFECT SCORE - ALL TESTS PASSED! ✓✓✓\n");
+            $display("\n PERFECT SCORE. ALL TESTS PASSED! ");
         end else begin
             $display("\n⚠️  SOME TESTS FAILED ⚠️");
             $display("Please check the failed tests above.\n");
         end
         
         // Display register dump for verification
-        $display("\n================================================================================");
+        $display("\n" + "="*80);
         $display("REGISTER FILE DUMP");
-        $display("================================================================================");
+        $display("="*80);
         $display("x0  = 0x%08h  |  x16 = 0x%08h", dut.reg_file.regs[0], dut.reg_file.regs[16]);
         $display("x1  = 0x%08h  |  x17 = 0x%08h", dut.reg_file.regs[1], dut.reg_file.regs[17]);
         $display("x2  = 0x%08h  |  x18 = 0x%08h", dut.reg_file.regs[2], dut.reg_file.regs[18]);
@@ -224,7 +228,7 @@ module testbench_mc;
         $display("x13 = 0x%08h  |  x29 = 0x%08h", dut.reg_file.regs[13], dut.reg_file.regs[29]);
         $display("x14 = 0x%08h  |  x30 = 0x%08h", dut.reg_file.regs[14], dut.reg_file.regs[30]);
         $display("x15 = 0x%08h  |  x31 = 0x%08h", dut.reg_file.regs[15], dut.reg_file.regs[31]);
-        $display("================================================================================\n");
+        $display("="*80 + "\n");
         
         $finish;
     end
