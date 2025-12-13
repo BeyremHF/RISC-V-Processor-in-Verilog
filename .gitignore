@@ -1,0 +1,11 @@
+# Simulation files
+*.vcd
+*.vvp
+sim
+*.out
+
+# Temporary files
+*.swp
+*.swo
+*~
+.DS_Store
