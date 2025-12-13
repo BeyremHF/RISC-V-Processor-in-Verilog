@@ -83,16 +83,10 @@ gtkwave riscv_processor_mc.vcd
 | Aspect | Single-Cycle | Multi-Cycle |
 |--------|--------------|-------------|
 | **CPI** | 1 | 3-5 (average ~4) |
-| **Clock Period** | ~755 ps | ~270 ps |
 | **Memory** | Separate inst/data | Unified |
 | **ALU Usage** | 3 adders needed | 1 ALU reused |
 | **Control** | Combinational | FSM-based |
 
-## Performance
-
-For the test program with ~40 instructions:
-- **Single-Cycle**: 40 cycles × 755 ps = ~30,200 ps
-- **Multi-Cycle**: ~160 cycles × 270 ps = ~43,200 ps
 
 Multi-cycle enables higher clock frequency but requires more cycles per instruction.
 
@@ -104,4 +98,3 @@ Test suite validates all 24 instructions with 38 comprehensive tests including:
 - Memory load/store operations
 - Branch and jump instructions
 
-Success rate: **100%** ✓
