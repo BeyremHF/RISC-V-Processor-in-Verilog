@@ -9,11 +9,6 @@ module pc_mc (
     output reg [31:0] pc_current // Current PC value
 );
     
-    // Initialize PC to 0
-    initial begin
-        pc_current = 32'b0;
-    end
-
     // Sequential logic: Update PC on clock edge only when enabled
     always @(posedge clk or posedge rst) begin 
         if (rst)

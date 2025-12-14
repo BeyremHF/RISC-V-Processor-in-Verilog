@@ -9,11 +9,6 @@ module register (
     output reg [31:0] q          // Data output
 );
     
-    // Initialize register to 0 to prevent X values
-    initial begin
-        q = 32'b0;
-    end
-
     // Sequential logic: Update register on clock edge only when enabled
     always @(posedge clk or posedge rst) begin 
         if (rst)

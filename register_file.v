@@ -14,14 +14,9 @@ module register_file (
 
     // Register array: 32 registers, each 32 bits (updated in the always block on every clock cycle)
     reg [31:0] regs [0:31];
-
-    // Initialize ALL registers to 0 at simulation start
+    
+    // Loop variable for reset
     integer i;
-    initial begin
-        for (i = 0; i < 32; i = i + 1) begin
-            regs[i] = 32'b0;
-        end
-    end
     
     // COMBINATIONAL READS
     // x0 always returns 0 and cannot be overwritten (hardwired)

@@ -21,7 +21,7 @@ module fsm (
     output reg sel_pc_src              // PC source select (0=alu_out, 1=alu_result)
 );
 
-    // State encoding using localparam for readability
+    // State encoding using localparam
     localparam S0_FETCH    = 4'd0;   // Fetch instruction, compute PC+4
     localparam S1_DECODE   = 4'd1;   // Decode instruction, read registers
     localparam S2_EXE_ADDR = 4'd2;   // Execute: compute memory address (LW/SW) or branch target (BEQ/JAL)
@@ -46,11 +46,6 @@ module fsm (
     
     // State register
     reg [3:0] current_state, next_state;
-    
-    // Initialize state
-    initial begin
-        current_state = S0_FETCH;
-    end
     
     // State register update
     always @(posedge clk or posedge rst) begin

@@ -198,7 +198,7 @@ module testbench_mc;
         $display("================================================================================");
         
         if (failed_tests == 0) begin
-            $display("\n✓✓✓ PERFECT SCORE - ALL TESTS PASSED! ✓✓✓\n");
+            $display("\nALL TESTS PASSED!\n");
         end else begin
             $display("\n⚠️  SOME TESTS FAILED ⚠️");
             $display("Please check the failed tests above.\n");
