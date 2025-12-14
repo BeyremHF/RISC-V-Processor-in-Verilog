@@ -51,21 +51,7 @@ rv_mc.v                    # Top-level module
 
 **Compile:**
 ```bash
-iverilog -o sim \
-  testbench_mc.v \
-  rv_mc.v \
-  controller_mc.v \
-  fsm.v \
-  alu_decoder.v \
-  instr_decoder.v \
-  mem.v \
-  generic_register.v \
-  pc_mc.v \
-  alu.v \
-  register_file.v \
-  sign_extender_debug.v \
-  mux2.v \
-  mux4.v
+iverilog -o sim testbench_mc.v rv_mc.v controller_mc.v fsm.v alu_decoder.v instr_decoder.v mem.v generic_register.v pc_mc.v alu.v register_file.v sign_extender.v mux2.v mux4.v
 ```
 
 **Run:**
