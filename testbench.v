@@ -4,29 +4,27 @@ module testbench;
 
     // Signals
     reg clk;
-    reg rst;
+    reg rst_n;  // Active-low reset for pipeline
     
     // Test statistics
     integer passed_tests;
     integer failed_tests;
     integer total_tests;
     
-    // Instantiate the processor
-    riscv_processor dut (
+    // Instantiate the pipelined processor
+    rv_pl dut (
         .clk(clk),
-        .rst(rst)
+        .rst_n(rst_n)
     );
     
     // Clock generation (50MHz = 20ns period)
     initial begin
-
         // VCD dump for waveform viewing
         $dumpfile("dump.vcd");
         $dumpvars(0, testbench);
 
         clk = 0;
         forever #10 clk = ~clk;
-
     end
     
     // Helper task to check register value
@@ -36,14 +34,14 @@ module testbench;
         input [200*8:0] test_name;
         begin
             total_tests = total_tests + 1;
-            if (dut.reg_file.regs[reg_num] === expected) begin
+            if (dut.RF.regs[reg_num] === expected) begin
                 $display("✓ PASS: %0s", test_name);
-                $display("  x%0d = 0x%08h", reg_num, dut.reg_file.regs[reg_num]);
+                $display("  x%0d = 0x%08h", reg_num, dut.RF.regs[reg_num]);
                 passed_tests = passed_tests + 1;
             end else begin
                 $display("✗ FAIL: %0s", test_name);
                 $display("  Expected: x%0d = 0x%08h", reg_num, expected);
-                $display("  Got:      x%0d = 0x%08h", reg_num, dut.reg_file.regs[reg_num]);
+                $display("  Got:      x%0d = 0x%08h", reg_num, dut.RF.regs[reg_num]);
                 failed_tests = failed_tests + 1;
             end
         end
@@ -56,14 +54,14 @@ module testbench;
         input [200*8:0] test_name;
         begin
             total_tests = total_tests + 1;
-            if (dut.dmem.mem[addr[31:2]] === expected) begin
+            if (dut.DMEM.mem[addr[31:2]] === expected) begin
                 $display("✓ PASS: %0s", test_name);
-                $display("  mem[%0d] = 0x%08h", addr, dut.dmem.mem[addr[31:2]]);
+                $display("  mem[%0d] = 0x%08h", addr, dut.DMEM.mem[addr[31:2]]);
                 passed_tests = passed_tests + 1;
             end else begin
                 $display("✗ FAIL: %0s", test_name);
                 $display("  Expected: mem[%0d] = 0x%08h", addr, expected);
-                $display("  Got:      mem[%0d] = 0x%08h", addr, dut.dmem.mem[addr[31:2]]);
+                $display("  Got:      mem[%0d] = 0x%08h", addr, dut.DMEM.mem[addr[31:2]]);
                 failed_tests = failed_tests + 1;
             end
         end
@@ -77,29 +75,31 @@ module testbench;
         total_tests = 0;
         
         // Setup waveform dumping
-        $dumpfile("riscv_processor.vcd");
+        $dumpfile("riscv_pipeline.vcd");
         $dumpvars(0, testbench);
         
         // Load program
-        $readmemh("program.hex", dut.imem.mem);
+        $readmemh("program.hex", dut.IMEM.mem);
         
-        $display("\n" + "="*80);
-        $display("RISC-V PROCESSOR COMPREHENSIVE TEST SUITE");
-        $display("="*80 + "\n");
+        $display("\n================================================================================");
+        $display("RISC-V PIPELINED PROCESSOR COMPREHENSIVE TEST SUITE");
+        $display("================================================================================\n");
         
-        // Reset sequence - properly timed
-        rst = 1;
+        // Reset sequence - active-low reset
+        rst_n = 0;  // Assert reset
         #15;
-        rst = 0;
+        rst_n = 1;  // Deassert reset
         #15;
         
         // Run for enough cycles to complete all instructions
-        // 40 instructions + some margin for branches/jumps
-        #900;
+        // Pipeline has 5 stages, so first instruction completes at cycle 5
+        // 38 instructions + pipeline fill + branches/jumps = ~50 cycles
+        // Add extra margin for safety
+        #1000;
         
-        $display("\n" + "="*80);
+        $display("\n================================================================================");
         $display("TEST RESULTS");
-        $display("="*80 + "\n");
+        $display("================================================================================\n");
         
         // GROUP 1: I-TYPE ARITHMETIC (ADDI)
         $display("--- GROUP 1: I-TYPE ARITHMETIC (ADDI) ---");
@@ -192,43 +192,43 @@ module testbench;
         $display("");
         
         // FINAL SUMMARY
-        $display("="*80);
+        $display("================================================================================");
         $display("FINAL TEST SUMMARY");
-        $display("="*80);
+        $display("================================================================================");
         $display("Total Tests:  %0d", total_tests);
         $display("Passed:       %0d", passed_tests);
         $display("Failed:       %0d", failed_tests);
         $display("Success Rate: %0d%%", (passed_tests * 100) / total_tests);
-        $display("="*80);
+        $display("================================================================================");
         
         if (failed_tests == 0) begin
-            $display("\n PERFECT SCORE. ALL TESTS PASSED! ");
+            $display("\n✓✓✓ PERFECT SCORE - ALL TESTS PASSED! ✓✓✓\n");
         end else begin
             $display("\n⚠️  SOME TESTS FAILED ⚠️");
             $display("Please check the failed tests above.\n");
         end
         
         // Display register dump for verification
-        $display("\n" + "="*80);
+        $display("\n================================================================================");
         $display("REGISTER FILE DUMP");
-        $display("="*80);
-        $display("x0  = 0x%08h  |  x16 = 0x%08h", dut.reg_file.regs[0], dut.reg_file.regs[16]);
-        $display("x1  = 0x%08h  |  x17 = 0x%08h", dut.reg_file.regs[1], dut.reg_file.regs[17]);
-        $display("x2  = 0x%08h  |  x18 = 0x%08h", dut.reg_file.regs[2], dut.reg_file.regs[18]);
-        $display("x3  = 0x%08h  |  x19 = 0x%08h", dut.reg_file.regs[3], dut.reg_file.regs[19]);
-        $display("x4  = 0x%08h  |  x20 = 0x%08h", dut.reg_file.regs[4], dut.reg_file.regs[20]);
-        $display("x5  = 0x%08h  |  x21 = 0x%08h", dut.reg_file.regs[5], dut.reg_file.regs[21]);
-        $display("x6  = 0x%08h  |  x22 = 0x%08h", dut.reg_file.regs[6], dut.reg_file.regs[22]);
-        $display("x7  = 0x%08h  |  x23 = 0x%08h", dut.reg_file.regs[7], dut.reg_file.regs[23]);
-        $display("x8  = 0x%08h  |  x24 = 0x%08h", dut.reg_file.regs[8], dut.reg_file.regs[24]);
-        $display("x9  = 0x%08h  |  x25 = 0x%08h", dut.reg_file.regs[9], dut.reg_file.regs[25]);
-        $display("x10 = 0x%08h  |  x26 = 0x%08h", dut.reg_file.regs[10], dut.reg_file.regs[26]);
-        $display("x11 = 0x%08h  |  x27 = 0x%08h", dut.reg_file.regs[11], dut.reg_file.regs[27]);
-        $display("x12 = 0x%08h  |  x28 = 0x%08h", dut.reg_file.regs[12], dut.reg_file.regs[28]);
-        $display("x13 = 0x%08h  |  x29 = 0x%08h", dut.reg_file.regs[13], dut.reg_file.regs[29]);
-        $display("x14 = 0x%08h  |  x30 = 0x%08h", dut.reg_file.regs[14], dut.reg_file.regs[30]);
-        $display("x15 = 0x%08h  |  x31 = 0x%08h", dut.reg_file.regs[15], dut.reg_file.regs[31]);
-        $display("="*80 + "\n");
+        $display("================================================================================");
+        $display("x0  = 0x%08h  |  x16 = 0x%08h", dut.RF.regs[0], dut.RF.regs[16]);
+        $display("x1  = 0x%08h  |  x17 = 0x%08h", dut.RF.regs[1], dut.RF.regs[17]);
+        $display("x2  = 0x%08h  |  x18 = 0x%08h", dut.RF.regs[2], dut.RF.regs[18]);
+        $display("x3  = 0x%08h  |  x19 = 0x%08h", dut.RF.regs[3], dut.RF.regs[19]);
+        $display("x4  = 0x%08h  |  x20 = 0x%08h", dut.RF.regs[4], dut.RF.regs[20]);
+        $display("x5  = 0x%08h  |  x21 = 0x%08h", dut.RF.regs[5], dut.RF.regs[21]);
+        $display("x6  = 0x%08h  |  x22 = 0x%08h", dut.RF.regs[6], dut.RF.regs[22]);
+        $display("x7  = 0x%08h  |  x23 = 0x%08h", dut.RF.regs[7], dut.RF.regs[23]);
+        $display("x8  = 0x%08h  |  x24 = 0x%08h", dut.RF.regs[8], dut.RF.regs[24]);
+        $display("x9  = 0x%08h  |  x25 = 0x%08h", dut.RF.regs[9], dut.RF.regs[25]);
+        $display("x10 = 0x%08h  |  x26 = 0x%08h", dut.RF.regs[10], dut.RF.regs[26]);
+        $display("x11 = 0x%08h  |  x27 = 0x%08h", dut.RF.regs[11], dut.RF.regs[27]);
+        $display("x12 = 0x%08h  |  x28 = 0x%08h", dut.RF.regs[12], dut.RF.regs[28]);
+        $display("x13 = 0x%08h  |  x29 = 0x%08h", dut.RF.regs[13], dut.RF.regs[29]);
+        $display("x14 = 0x%08h  |  x30 = 0x%08h", dut.RF.regs[14], dut.RF.regs[30]);
+        $display("x15 = 0x%08h  |  x31 = 0x%08h", dut.RF.regs[15], dut.RF.regs[31]);
+        $display("================================================================================\n");
         
         $finish;
     end

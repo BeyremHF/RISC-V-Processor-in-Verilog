@@ -29,4 +29,4 @@ endmodule
 //    - Binary example:
 //      * addr = 12 = 0b...001100
 //      * addr[31:2] = 0b...0011 = 3
-//      * So byte address 12 maps to word 3 
+//      * So byte address 12 maps to word 3
